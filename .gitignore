@@ -1,0 +1,72 @@
+# 🐍 Entornos virtuales
+.venv/
+venv/
+ENV/
+env/
+pip-selfcheck.json
+
+# 🧠 Archivos cache de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 🧪 Testing
+.coverage
+.tox/
+nosetests.xml
+test-results/
+.pytest_cache/
+
+# 📝 Jupyter Notebooks
+.ipynb_checkpoints/
+
+# 💾 Bases de datos locales
+*.sqlite3
+*.db
+
+# 🗃️ Archivos de logs y datos temporales
+*.log
+*.csv
+*.tsv
+*.tmp
+*.bak
+*.swp
+*.swo
+
+# 🪄 Archivos compilados
+*.so
+*.dll
+*.dylib
+*.o
+*.a
+
+# 🧮 Configuración de entorno local
+.env
+.env.*
+
+# 🧠 VS Code y PyCharm config
+.vscode/
+.idea/
+
+# 🧼 MacOS
+.DS_Store
+
+# 📂 Archivos de Office temporales
+~$*
+
+# 📚 Documentación autogenerada
+docs/_build/
+
+# ⚙️ Dist/egg packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# 🛠️ Herramientas como Poetry/Pipenv
+poetry.lock
+Pipfile.lock
+
+# ⚠️ Configuración de Git que no queremos subir
+.gitignore
+.gitattributes
