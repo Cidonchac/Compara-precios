@@ -2,7 +2,7 @@ import pandas as pd
 from datetime import datetime
 import os
 
-archivo = "/Users/cidonchac/Downloads/Comparador de precios.xlsx"
+archivo = "/de precios.xlsx"
 
 # Cargar archivo
 if not os.path.exists(archivo):
