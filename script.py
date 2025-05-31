@@ -2,7 +2,7 @@ import pandas as pd
 from datetime import datetime
 import os
 
-archivo = "/de precios.xlsx"
+archivo = "/Users/Cidonchac/Downloads/Comparador de precios.xlsx"
 
 # Cargar archivo
 if not os.path.exists(archivo):
@@ -12,15 +12,23 @@ if not os.path.exists(archivo):
 df = pd.read_excel(archivo)
 
 # Introducir detalles clave
-print("\n¿Quieres introducir un nuevo precio? (s/n)")
-introducir_precio = input().strip().lower() == 's'
+while True:
+    producto = None
+    local = None
+    marca = None
+    formato = None
+    idx = None
+    print("\n¿Quieres introducir un nuevo precio? (s/n)")
+    introducir_precio = input().strip().lower() == 's'
+    if not introducir_precio:
+        break
 
-if introducir_precio:
-    print("\nIntroduce los datos del nuevo precio:")
-    producto = input("Producto: ").strip()
-    local = input("Local: ").strip()
-    marca = input("Marca: ").strip()
-    formato = input("Formato: ").strip()
+    if introducir_precio:
+        print("\nIntroduce los datos del nuevo precio:")
+        producto = input("Producto: ").strip()
+        local = input("Local: ").strip()
+        marca = input("Marca: ").strip()
+        formato = input("Formato: ").strip()
 
     # Buscar fila existente
     filtro = (
@@ -72,18 +80,36 @@ if introducir_precio:
         columna_precio = f"Precio {fecha_dt.strftime('%m/%Y')}"
 
         if columna_precio in df.columns:
-            sobrescribir = input(f"Ya hay precio para {columna_precio}. ¿Sobrescribir? (s/n): ").lower()
-            if sobrescribir != "s" and not pd.isna(df.at[idx, columna_precio]):
-                print("No se ha modificado.")
-                exit()
+            if pd.isna(df.at[idx, columna_precio]):
+                # Celda vacía: asigna el precio sin preguntar
+                df.at[idx, columna_precio] = f"{precio:.2f} €"
+                print(f"Precio añadido para {producto} - {local} en {columna_precio}.")
+            else:
+                # Celda con valor: pregunta si quiere sobrescribir
+                sobrescribir = input(f"Ya hay precio para {columna_precio}. ¿Sobrescribir? (s/n): ").lower()
+                if sobrescribir == "s":
+                    df.at[idx, columna_precio] = f"{precio:.2f} €"
+                    print(f"Precio sobrescrito para {producto} - {local} en {columna_precio}.")
+                else:
+                    print("No se ha modificado.")
+                    exit()
         else:
+            # Si la columna no existe, la creamos y asignamos el precio
             df[columna_precio] = None
-
-        df.at[idx, columna_precio] = f"{precio:.2f} €"
+            df.at[idx, columna_precio] = f"{precio:.2f} €"
+            print(f"Columna {columna_precio} creada y precio añadido para {producto} - {local}.")
 
         # Guardar
         df.to_excel(archivo, index=False)
-        print(f"Precio añadido para {producto} - {local} en {columna_precio}.")
+        print("\n¿Quieres añadir otro producto? (s/n)")
+        if input().strip().lower() != 's':
+            break
+
+# Repetir
+
+
+
+
 
 # Buscar local con mejores precios
 print("\n¿Quieres buscar dónde comprar hoy el precio más bajo? (s/n)")
@@ -109,12 +135,20 @@ if input().lower() == "s":
     def parse_precio(x):
         try:
             return float(str(x).replace("€", "").replace(",", ".").strip())
-        except:
+        except ValueError:
             return None
 
     df_precio_mes["precio_float"] = df_precio_mes[columna_objetivo].apply(parse_precio)
 
     locales_disponibles = sorted(df_precio_mes["Local"].dropna().str.strip().unique())
+
+    todos_los_locales = df["Local"].dropna().str.strip().unique()
+
+    locales_sin_precio = [loc for loc in todos_los_locales if loc not in locales_disponibles]
+
+    if locales_sin_precio:
+        print(f"\n⚠️ Aviso: Hay {len(locales_sin_precio)} locales sin precio en {columna_objetivo}.")
+        print("Es recomendable actualizar los datos.")
 
     if not locales_disponibles:
         print("No hay locales con precios registrados para este mes.")
