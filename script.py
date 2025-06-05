@@ -16,7 +16,9 @@ while True:
     producto = None
     local = None
     marca = None
-    formato = None
+    cantidad = None
+    unidad = None
+    envase = None
     idx = None
     print("\n¿Quieres introducir un nuevo precio? (s/n)")
     introducir_precio = input().strip().lower() == 's'
@@ -28,14 +30,19 @@ while True:
         producto = input("Producto: ").strip()
         local = input("Local: ").strip()
         marca = input("Marca: ").strip()
-        formato = input("Formato: ").strip()
+        cantidad = input("Cantidad: ").strip()
+        unidad = input("Unidad: ").strip()
+        envase = input("Envase: ").strip()
+        formato = f"{cantidad} {unidad} - {envase}"
 
     # Buscar fila existente
     filtro = (
         (df["Producto"].str.strip() == producto) &
         (df["Local"].str.strip() == local) &
         (df["Marca"].str.strip() == marca) &
-        (df["Formato"].str.strip() == formato)
+        (df["Cantidad"].astype(str).str.strip() == cantidad) &
+        (df["Unidad"].astype(str).str.strip() == unidad) &
+        (df["Envase"].astype(str).str.strip() == envase)
     )
 
     if not df[filtro].empty:
@@ -50,7 +57,10 @@ while True:
                 "Local": local,
                 "Marca": marca,
                 "Enlace": "",
-                "Formato": formato,
+                "Cantidad": cantidad,
+                "Unidad": unidad,
+                "Envase": envase,
+                "Categoría": "",
             }
             df = pd.concat([df, pd.DataFrame([nueva_fila])], ignore_index=True)
             idx = df.index[-1]
@@ -183,7 +193,7 @@ if input().lower() == "s":
         else:
             print(f"\n🛍️ Productos donde '{local_busqueda}' tiene el precio más bajo en {columna_objetivo}:")
             for _, fila in df_local_minimos.iterrows():
-                print(f" - {fila['Producto']} ({fila['Marca']} - {fila['Formato']}): {fila['precio_float']:.2f} €")
+                print(f" - {fila['Producto']} ({fila['Marca']} - {fila['Cantidad']} {fila['Unidad']} - {fila['Envase']}): {fila['precio_float']:.2f} €")
 
         repetir = input("\n¿Quieres consultar otro local? (s/n): ").strip().lower()
         if repetir != "s":
