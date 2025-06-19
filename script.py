@@ -1,8 +1,7 @@
 import pandas as pd
 from datetime import datetime
 import os
-
-archivo = "/Users/Cidonchac/Downloads/Comparador de precios.xlsx"
+archivo = input("Introduce la ruta al archivo Excel: ").strip()
 
 # Cargar archivo
 if not os.path.exists(archivo):
@@ -10,6 +9,7 @@ if not os.path.exists(archivo):
     exit()
 
 df = pd.read_excel(archivo)
+df["Unidad"] = df["Unidad"].astype(str).str.strip().str.lower()
 
 # Introducir detalles clave
 while True:
@@ -31,9 +31,10 @@ while True:
         local = input("Local: ").strip()
         marca = input("Marca: ").strip()
         cantidad = input("Cantidad: ").strip()
-        unidad = input("Unidad: ").strip()
+        unidad = input("Unidad: ").strip().lower()
         envase = input("Envase: ").strip()
-        formato = f"{cantidad} {unidad} - {envase}"
+
+    cantidad = str(cantidad).strip()
 
     # Buscar fila existente
     filtro = (
@@ -126,19 +127,40 @@ print("\n¿Quieres buscar dónde comprar hoy el precio más bajo? (s/n)")
 if input().lower() == "s":
     df = pd.read_excel(archivo)  # Volver a cargar datos actualizados
 
-    columnas_mes = [col for col in df.columns if col.startswith("Precio ")]
-    columnas_mes_formateadas = [col.replace("Precio ", "") for col in columnas_mes]
+    import re
+
+    # Crear un diccionario que mapea la fecha 'mm/yyyy' al nombre COMPLETO y EXACTO de la columna
+    # Ejemplo: {'06/2025': 'Precio 06/2025 ', '05/2025': 'Precio_05/2025'}
+    columnas_de_precios = {
+        match.group(1): col
+        for col in df.columns
+        if col.strip().startswith("Precio") and (match := re.search(r"(\d{2}/\d{4})", col))
+    }
 
     mes_actual = datetime.today().strftime("%m/%Y")
+    columna_objetivo = None  # Inicializar la variable
 
-    if mes_actual in columnas_mes_formateadas:
-        columna_objetivo = "Precio " + mes_actual
+    # Comprobar si el mes actual existe en nuestro diccionario de columnas
+    if mes_actual in columnas_de_precios:
+        # Si existe, usamos el nombre de columna EXACTO que guardamos
+        columna_objetivo = columnas_de_precios[mes_actual]
+        print(f"Usando la columna de precios del mes actual: '{columna_objetivo}'")
     else:
-        fechas_dt = [datetime.strptime(m, "%m/%Y") for m in columnas_mes_formateadas]
+        # Si no, buscamos la fecha más cercana entre las disponibles
+        print(f"No hay precios del mes actual ({mes_actual}). Buscando la fecha más cercana...")
+        if not columnas_de_precios:
+            print("Error: No se encontraron columnas de precios con formato 'Precio mm/yyyy' en el archivo.")
+            exit()  # Salir si no hay ninguna columna de precios
+
+        fechas_dt = {datetime.strptime(m, "%m/%Y"): nombre_col for m, nombre_col in columnas_de_precios.items()}
         fecha_actual_dt = datetime.strptime(mes_actual, "%m/%Y")
-        columna_mas_cercana = min(fechas_dt, key=lambda d: abs(d - fecha_actual_dt))
-        columna_objetivo = "Precio " + columna_mas_cercana.strftime("%m/%Y")
-        print(f"No hay precios del mes actual. Se usa: {columna_objetivo}")
+
+        # Encontrar la clave de fecha (objeto datetime) más cercana
+        fecha_mas_cercana_dt = min(fechas_dt.keys(), key=lambda d: abs(d - fecha_actual_dt))
+
+        # Usar esa clave para obtener el nombre de columna correcto del diccionario
+        columna_objetivo = fechas_dt[fecha_mas_cercana_dt]
+        print(f"Se usará la columna más cercana encontrada: '{columna_objetivo}'")
 
     df_precio_mes = df[~df[columna_objetivo].isna()].copy()
 

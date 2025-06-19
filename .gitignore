@@ -62,7 +62,7 @@ build/
 dist/
 *.egg-info/
 .eggs/
-
+*.iml
 # 🛠️ Herramientas como Poetry/Pipenv
 poetry.lock
 Pipfile.lock
